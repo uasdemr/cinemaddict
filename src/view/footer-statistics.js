@@ -1,7 +1,7 @@
 import { createElement } from '../utils.js';
 
 const createFooterStatisticsTemplate = (filmsLength) => {
-  const moviesInside = filmsLength ? filmsLength : '';
+  const moviesInside = filmsLength ? filmsLength : '0';
   return `<p>
     ${moviesInside} movies inside
   </p>`;

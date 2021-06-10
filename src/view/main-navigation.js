@@ -4,7 +4,7 @@ const createFilterItemTemplate = (filter, isActive) => {
   const {name, count} = filter;
   return `<a href="#${String(name.toLowerCase()).split(' ')[0]}" class="main-navigation__item
     ${isActive ? 'main-navigation__item--active' : ''}">
-    ${name === 'All movies' ? 'All movies' : `${name}<span class="main-navigation__item-count">${count}</span>`}
+    ${name === 'All movies' ? 'All movies' : `${name} <span class="main-navigation__item-count">${count}</span>`}
   </a>`;
 };
 

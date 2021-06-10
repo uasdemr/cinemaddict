@@ -1,3 +1,5 @@
+import {createElement} from '../utils.js';
+
 const createFilterItemTemplate = (filter, isActive) => {
   const {name, count} = filter;
   return `<a href="#${String(name.toLowerCase()).split(' ')[0]}" class="main-navigation__item
@@ -6,7 +8,7 @@ const createFilterItemTemplate = (filter, isActive) => {
   </a>`;
 };
 
-export const createMainNavigationTemplate = (filters) => {
+const createMainNavigationTemplate = (filters) => {
   const filterItemsTemplate = filters
     .map((filter, index) => createFilterItemTemplate(filter, index === 0))
     .join('');
@@ -18,3 +20,26 @@ export const createMainNavigationTemplate = (filters) => {
     <a href="#stats" class="main-navigation__additional">Stats</a>
   </nav>`;
 };
+
+export default class Filter {
+  constructor(filters) {
+    this._filters = filters;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createMainNavigationTemplate(this._filters);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

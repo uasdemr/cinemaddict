@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { EMOTIONS } from '../const.js';
 import { mockComments } from '../mock/comments.js';
-
+import {createElement} from '../utils.js';
 
 const createEmojiList = () => {
   return EMOTIONS.map((emotion) => {
@@ -12,8 +12,7 @@ const createEmojiList = () => {
   }).join('');
 };
 
-//Подумать над тем, если данные не придут
-export const createFilmDetailsTemplate = (film) => {
+const createFilmDetailsTemplate = (film) => {
   const { filmInfo, comments } = film;
   const writers = filmInfo.writers.length > 0 ? filmInfo.writers.join(', ') : '';
   const actors = filmInfo.actors.length > 0 ? filmInfo.actors.join(', ') : '';
@@ -55,7 +54,7 @@ export const createFilmDetailsTemplate = (film) => {
       </div>
       <div class="film-details__info-wrap">
         <div class="film-details__poster">
-          <img class="film-details__poster-img" src="./images/posters/the-great-flamarion.jpg" alt="">
+          <img class="film-details__poster-img" src="./${filmInfo.poster}" alt="${filmInfo.alternativeTitle}">
 
           <p class="film-details__age">${filmInfo.ageRating}+</p>
         </div>
@@ -146,3 +145,26 @@ export const createFilmDetailsTemplate = (film) => {
   </form>
 </section>`;
 };
+
+export default class FilmDetailPopup {
+  constructor(film) {
+    this._film = film;
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFilmDetailsTemplate(this._film);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

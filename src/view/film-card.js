@@ -1,10 +1,12 @@
+import { createElement } from '../utils.js';
+
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
 
 import { MAX_DESCRIPTION_LENGTH } from '../const.js';
 
-export const createFilmCardTemplate = (film) => {
+const createFilmCardTemplate = (film) => {
   //Подумать над тем, если данные не придут
   const { filmInfo, userDetails, comments } = film;
 
@@ -16,7 +18,7 @@ export const createFilmCardTemplate = (film) => {
   const genre = filmInfo.genre.length ? filmInfo.genre.join(', ') : '';
   const description = filmInfo.description.length <= 0 ? '' : filmInfo.description.length > MAX_DESCRIPTION_LENGTH ? filmInfo.description.substring(0, 139) + '...' : filmInfo.description;
 
-  return `<article class="film-card">
+  return `<article class="film-card" data-card-id="${film.id}">
     <h3 class="film-card__title">${filmInfo.title}</h3>
     <p class="film-card__rating">${filmInfo.totalRating}</p>
     <p class="film-card__info">
@@ -34,3 +36,27 @@ export const createFilmCardTemplate = (film) => {
     </div>
   </article>`;
 };
+
+export default class FilmCard {
+  constructor(film) {
+    this._film = film;
+
+    this._element = null;
+  }
+
+  getTemplate() {
+    return createFilmCardTemplate(this._film);
+  }
+
+  getElement() {
+    if (!this._element) {
+      this._element = createElement(this.getTemplate());
+    }
+
+    return this._element;
+  }
+
+  removeElement() {
+    this._element = null;
+  }
+}

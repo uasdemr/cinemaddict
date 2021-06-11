@@ -1,5 +1,4 @@
-import { createElement } from '../utils.js';
-
+import AbstractView from './abstract.js';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 dayjs.extend(duration);
@@ -7,7 +6,6 @@ dayjs.extend(duration);
 import { MAX_DESCRIPTION_LENGTH } from '../const.js';
 
 const createFilmCardTemplate = (film) => {
-  //Подумать над тем, если данные не придут
   const { filmInfo, userDetails, comments } = film;
 
   const isWatchList = userDetails.watchlist ? 'film-card__controls-item--active' : '';
@@ -37,26 +35,26 @@ const createFilmCardTemplate = (film) => {
   </article>`;
 };
 
-export default class FilmCard {
+export default class FilmCard extends AbstractView {
   constructor(film) {
+    super();
     this._film = film;
-
-    this._element = null;
+    this._openPopUpClickHandler = this._openPopUpClickHandler.bind(this);
   }
 
   getTemplate() {
     return createFilmCardTemplate(this._film);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
+  _openPopUpClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.openClick(evt);
   }
 
-  removeElement() {
-    this._element = null;
+  setOpenPopUpClickHandler(callback) {
+    this._callback.openClick = callback;
+    this.getElement().querySelector('.film-card__poster').addEventListener('click', this._openPopUpClickHandler);
+    this.getElement().querySelector('.film-card__title').addEventListener('click', this._openPopUpClickHandler);
+    this.getElement().querySelector('.film-card__comments').addEventListener('click', this._openPopUpClickHandler);
   }
 }

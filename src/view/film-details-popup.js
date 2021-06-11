@@ -1,7 +1,7 @@
+import AbstractView from './abstract.js';
 import dayjs from 'dayjs';
 import { EMOTIONS } from '../const.js';
 import { mockComments } from '../mock/comments.js';
-import {createElement} from '../utils.js';
 
 const createEmojiList = () => {
   return EMOTIONS.map((emotion) => {
@@ -146,25 +146,24 @@ const createFilmDetailsTemplate = (film) => {
 </section>`;
 };
 
-export default class FilmDetailPopup {
+export default class FilmDetailPopup extends AbstractView {
   constructor(film) {
+    super();
     this._film = film;
-    this._element = null;
+    this._closePopUpClickHandler = this._closePopUpClickHandler.bind(this);
   }
 
   getTemplate() {
     return createFilmDetailsTemplate(this._film);
   }
 
-  getElement() {
-    if (!this._element) {
-      this._element = createElement(this.getTemplate());
-    }
-
-    return this._element;
+  _closePopUpClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.closeClick();
   }
 
-  removeElement() {
-    this._element = null;
+  setClosePopUpClickHandler(callback) {
+    this._callback.closeClick = callback;
+    this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closePopUpClickHandler);
   }
 }

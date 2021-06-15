@@ -1,3 +1,5 @@
+//В ходе разработки выяснилось, что это лишний компонент
+
 import AbstractView from './abstract.js';
 
 const createFilmsListTemplate = () => {

@@ -15,6 +15,7 @@ import { FILM_TOP_RATED_COUNT, FILM_MOST_COMMENTED_COUNT, FILM_COUNT_PER_STEP } 
 export default class Board {
   constructor(boardContainer) {
     this._boardContainer = boardContainer;
+    this._renderedFilmCount = FILM_COUNT_PER_STEP;
 
     this._sortComponent = new SortView();
     this._filmsComponent = new FilmsView();
@@ -23,6 +24,10 @@ export default class Board {
     this._noFilmComponent = new NoFilmsView();
     this._topRatedComponent = new TopRatedView();
     this._mostCommentedComponent = new MostCommentedView();
+
+    this._showMoreButtonComponent = new ShowMoreButtonView();
+
+    this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
   }
 
   init(boardFilms) {
@@ -98,26 +103,33 @@ export default class Board {
     render(this._filmsComponent, this._noFilmComponent, RenderPosition.BEFOREEND);
   }
 
+  _handleShowMoreButtonClick() {
+    this._renderFilms(this._renderedFilmCount, this._renderedFilmCount + FILM_COUNT_PER_STEP);
+    this._renderedFilmCount += FILM_COUNT_PER_STEP;
+
+    if(this._renderedFilmCount >= this._boardFilms.length) {
+      remove(this._showMoreButtonComponent)
+    }
+  }
+
   _renderShowMoreButton() {
     // Метод, куда уйдёт логика по отрисовке компонетов фильмов,
     // текущая функция renderFilm в main.js
-    let renderedFilmCount = FILM_COUNT_PER_STEP;
-    const showMoreButtonComponent = new ShowMoreButtonView();
+    render(this._filmsListComponent, this._showMoreButtonComponent, RenderPosition.BEFOREEND);
 
-    render(this._filmsListComponent, showMoreButtonComponent, RenderPosition.BEFOREEND);
+    // showMoreButtonComponent.setClickHandler(() => {
+    //   this._boardFilms
+    //     .slice(renderedFilmCount, renderedFilmCount + FILM_COUNT_PER_STEP)
+    //     .forEach((film) => this._renderFilm(film));
 
+    //   renderedFilmCount += FILM_COUNT_PER_STEP;
 
-    showMoreButtonComponent.setClickHandler(() => {
-      this._boardFilms
-        .slice(renderedFilmCount, renderedFilmCount + FILM_COUNT_PER_STEP)
-        .forEach((film) => this._renderFilm(film));
+    //   if (renderedFilmCount >= this._boardFilms.length) {
+    //     remove(showMoreButtonComponent);
+    //   }
+    // });
 
-      renderedFilmCount += FILM_COUNT_PER_STEP;
-
-      if (renderedFilmCount >= this._boardFilms.length) {
-        remove(showMoreButtonComponent);
-      }
-    });
+    this._showMoreButtonComponent.setClickHandler(this._handleShowMoreButtonClick);
   }
 
   _renderFilmList() {

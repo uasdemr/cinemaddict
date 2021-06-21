@@ -47,8 +47,6 @@ export default class Board {
   }
 
   _renderFilm(film) {
-    // Метод, куда уйдёт логика по созданию и рендерингу компонетов фильма,
-    // текущая функция renderFilm в main.js
     const filmCardComponent = new FilmCardView(film);
     let filmPopUpElement = null;
 
@@ -113,28 +111,12 @@ export default class Board {
   }
 
   _renderShowMoreButton() {
-    // Метод, куда уйдёт логика по отрисовке компонетов фильмов,
-    // текущая функция renderFilm в main.js
     render(this._filmsListComponent, this._showMoreButtonComponent, RenderPosition.BEFOREEND);
-
-    // showMoreButtonComponent.setClickHandler(() => {
-    //   this._boardFilms
-    //     .slice(renderedFilmCount, renderedFilmCount + FILM_COUNT_PER_STEP)
-    //     .forEach((film) => this._renderFilm(film));
-
-    //   renderedFilmCount += FILM_COUNT_PER_STEP;
-
-    //   if (renderedFilmCount >= this._boardFilms.length) {
-    //     remove(showMoreButtonComponent);
-    //   }
-    // });
-
     this._showMoreButtonComponent.setClickHandler(this._handleShowMoreButtonClick);
   }
 
   _renderFilmList() {
     this._renderFilms(0, Math.min(this._boardFilms.length, FILM_COUNT_PER_STEP));
-
     if (this._boardFilms.length > FILM_COUNT_PER_STEP) {
       this._renderShowMoreButton();
     }

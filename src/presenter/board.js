@@ -1,12 +1,13 @@
 import SortView from '../view/sort.js';
 import FilmsView from '../view/films.js';
 import FilmsListView from '../view/films-list.js';
-import FilmCardView from '../view/film-card.js';
+// import FilmCardView from '../view/film-card.js';
 import ShowMoreButtonView from '../view/show-more-button.js';
 import TopRatedView from '../view/top-rated.js';
 import MostCommentedView from '../view/most-commented.js';
-import FilmDetailPopup from '../view/film-details-popup.js';
+// import FilmDetailPopup from '../view/film-details-popup.js';
 import NoFilmsView from '../view/no-films.js';
+import FilmPresenter from './film.js';
 
 import { render, remove, RenderPosition } from '../utils/render.js';
 
@@ -34,7 +35,7 @@ export default class Board {
     this._boardFilms = boardFilms.slice();
     // Метод для инициализации (начала работы) модуля,
     // малая часть текущей функции renderBoard в main.js
-    
+
     render(this._boardContainer, this._filmsComponent, RenderPosition.BEFOREEND);
     render(this._filmsComponent, this._filmsListComponent, RenderPosition.BEFOREEND);
 
@@ -47,46 +48,50 @@ export default class Board {
   }
 
   _renderFilm(film) {
-    const filmCardComponent = new FilmCardView(film);
-    let filmPopUpElement = null;
 
-    const openFilmCardPopUp = (evt) => {
-      const cardId = evt.target.parentElement.dataset.cardId;
-      const findedFilm = this._boardFilms.find((film) => film.id === cardId);
+    const filmPresenter = new FilmPresenter(this._filmListContainerElement);
+    filmPresenter.init(film);
 
-      filmPopUpElement = new FilmDetailPopup(findedFilm);
+    // const filmCardComponent = new FilmCardView(film);
+    // let filmPopUpElement = null;
 
-      document.body.appendChild(filmPopUpElement.getElement());
-      document.body.classList.add('hide-overflow');
+    // const openFilmCardPopUp = (evt) => {
+    //   const cardId = evt.target.parentElement.dataset.cardId;
+    //   const findedFilm = this._boardFilms.find((film) => film.id === cardId);
 
-      filmPopUpElement.setClosePopUpClickHandler(() => {
-        closeFilmCardPopUp(filmPopUpElement);
-      });
+    //   filmPopUpElement = new FilmDetailPopup(findedFilm);
 
-      document.body.addEventListener('keydown', onEscKeyDown);
-    };
+    //   document.body.appendChild(filmPopUpElement.getElement());
+    //   document.body.classList.add('hide-overflow');
 
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
-        evt.preventDefault();
-        closeFilmCardPopUp(filmPopUpElement);
-        document.removeEventListener('keydown', onEscKeyDown);
-      }
-    };
+    //   filmPopUpElement.setClosePopUpClickHandler(() => {
+    //     closeFilmCardPopUp(filmPopUpElement);
+    //   });
 
-    const closeFilmCardPopUp = (filmPopUpElement) => {
-      remove(filmPopUpElement);
+    //   document.body.addEventListener('keydown', onEscKeyDown);
+    // };
 
-      document.body.classList.remove('hide-overflow');
-      document.body.removeEventListener('keydown', onEscKeyDown);
-    };
+    // const onEscKeyDown = (evt) => {
+    //   if (evt.key === 'Escape' || evt.key === 'Esc') {
+    //     evt.preventDefault();
+    //     closeFilmCardPopUp(filmPopUpElement);
+    //     document.removeEventListener('keydown', onEscKeyDown);
+    //   }
+    // };
+
+    // const closeFilmCardPopUp = (filmPopUpElement) => {
+    //   remove(filmPopUpElement);
+
+    //   document.body.classList.remove('hide-overflow');
+    //   document.body.removeEventListener('keydown', onEscKeyDown);
+    // };
 
 
-    filmCardComponent.setOpenPopUpClickHandler((evt) => {
-      openFilmCardPopUp(evt);
-    });
+    // filmCardComponent.setOpenPopUpClickHandler((evt) => {
+    //   openFilmCardPopUp(evt);
+    // });
 
-    render(this._filmListContainerElement, filmCardComponent.getElement(), RenderPosition.BEFOREEND);
+    // render(this._filmListContainerElement, filmCardComponent.getElement(), RenderPosition.BEFOREEND);
   }
 
   _renderFilms(from, to) {
@@ -105,7 +110,7 @@ export default class Board {
     this._renderFilms(this._renderedFilmCount, this._renderedFilmCount + FILM_COUNT_PER_STEP);
     this._renderedFilmCount += FILM_COUNT_PER_STEP;
 
-    if(this._renderedFilmCount >= this._boardFilms.length) {
+    if (this._renderedFilmCount >= this._boardFilms.length) {
       remove(this._showMoreButtonComponent)
     }
   }

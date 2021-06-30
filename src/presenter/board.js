@@ -8,7 +8,7 @@ import MostCommentedView from '../view/most-commented.js';
 // import FilmDetailPopup from '../view/film-details-popup.js';
 import NoFilmsView from '../view/no-films.js';
 import FilmPresenter from './film.js';
-
+import {updateItem} from '../utils/common.js';
 import { render, remove, RenderPosition } from '../utils/render.js';
 
 import { FILM_TOP_RATED_COUNT, FILM_MOST_COMMENTED_COUNT, FILM_COUNT_PER_STEP } from '../const.js';
@@ -17,6 +17,7 @@ export default class Board {
   constructor(boardContainer) {
     this._boardContainer = boardContainer;
     this._renderedFilmCount = FILM_COUNT_PER_STEP;
+    this._filmPresenter = {};
 
     this._sortComponent = new SortView();
     this._filmsComponent = new FilmsView();
@@ -29,6 +30,8 @@ export default class Board {
     this._showMoreButtonComponent = new ShowMoreButtonView();
 
     this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
+    this._handleFilmChange = this._handleFilmChange.bind(this);
+    this._handleModeChange = this._handleModeChange.bind(this);
   }
 
   init(boardFilms) {
@@ -42,56 +45,26 @@ export default class Board {
     this._renderBoard();
   }
 
+  _handleModeChange() {
+    Object
+      .values(this._filmPresenter)
+      .forEach((presenter) => presenter.resetView());
+  }
+
+  _handleFilmChange(updatedFilm) {
+    this._boardFilms = updateItem(this._boardFilms, updatedFilm);
+    this._filmPresenter[updatedFilm.id].init(updatedFilm);
+  }
+
   _renderSort() {
     // Метод для рендеринга сортировки
     render(this._boardContainer, this._sortComponent, RenderPosition.AFTERBEGIN);
   }
 
   _renderFilm(film) {
-
-    const filmPresenter = new FilmPresenter(this._filmListContainerElement);
+    const filmPresenter = new FilmPresenter(this._filmListContainerElement, this._handleFilmChange, this._handleModeChange);
     filmPresenter.init(film);
-
-    // const filmCardComponent = new FilmCardView(film);
-    // let filmPopUpElement = null;
-
-    // const openFilmCardPopUp = (evt) => {
-    //   const cardId = evt.target.parentElement.dataset.cardId;
-    //   const findedFilm = this._boardFilms.find((film) => film.id === cardId);
-
-    //   filmPopUpElement = new FilmDetailPopup(findedFilm);
-
-    //   document.body.appendChild(filmPopUpElement.getElement());
-    //   document.body.classList.add('hide-overflow');
-
-    //   filmPopUpElement.setClosePopUpClickHandler(() => {
-    //     closeFilmCardPopUp(filmPopUpElement);
-    //   });
-
-    //   document.body.addEventListener('keydown', onEscKeyDown);
-    // };
-
-    // const onEscKeyDown = (evt) => {
-    //   if (evt.key === 'Escape' || evt.key === 'Esc') {
-    //     evt.preventDefault();
-    //     closeFilmCardPopUp(filmPopUpElement);
-    //     document.removeEventListener('keydown', onEscKeyDown);
-    //   }
-    // };
-
-    // const closeFilmCardPopUp = (filmPopUpElement) => {
-    //   remove(filmPopUpElement);
-
-    //   document.body.classList.remove('hide-overflow');
-    //   document.body.removeEventListener('keydown', onEscKeyDown);
-    // };
-
-
-    // filmCardComponent.setOpenPopUpClickHandler((evt) => {
-    //   openFilmCardPopUp(evt);
-    // });
-
-    // render(this._filmListContainerElement, filmCardComponent.getElement(), RenderPosition.BEFOREEND);
+    this._filmPresenter[film.id] = filmPresenter;
   }
 
   _renderFilms(from, to) {
@@ -118,6 +91,15 @@ export default class Board {
   _renderShowMoreButton() {
     render(this._filmsListComponent, this._showMoreButtonComponent, RenderPosition.BEFOREEND);
     this._showMoreButtonComponent.setClickHandler(this._handleShowMoreButtonClick);
+  }
+
+  _clearFilmList() {
+    Object
+      .values(this._filmPresenter)
+      .forEach((presenter) => presenter.destroy());
+    this._filmPresenter = {};
+    this._renderedFilmCount = FILM_COUNT_PER_STEP;
+    remove(this._showMoreButtonComponent);
   }
 
   _renderFilmList() {

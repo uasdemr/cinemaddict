@@ -27,7 +27,7 @@ const createFilmDetailsTemplate = (film) => {
   };
 
   const createFilmComments = (comments) => {
-    const filteredComments = mockComments.filter(({ id }) => comments.includes(id));
+    const filteredComments = mockComments.filter(({id}) => comments.includes(id));
     return filteredComments.map((item) => {
       const commentDate = item.date ? dayjs(item.date).format('YYYY/MM/DD HH:mm') : '';
       return `<li class="film-details__comment">
@@ -39,7 +39,7 @@ const createFilmDetailsTemplate = (film) => {
         <p class="film-details__comment-info">
           <span class="film-details__comment-author">${item.author}</span>
           <span class="film-details__comment-day">${commentDate}</span>
-          <button class="film-details__comment-delete">Delete</button>
+          <button class="film-details__comment-delete" data-comment-id="${item.id}">Delete</button>
         </p>
       </div>
     </li>`;
@@ -151,6 +151,11 @@ export default class FilmDetailPopup extends AbstractView {
     super();
     this._film = film;
     this._closePopUpClickHandler = this._closePopUpClickHandler.bind(this);
+    this._formCommentDeleteClick = this._formCommentDeleteClick.bind(this);
+    this._formTextAreaHandler = this._formTextAreaHandler.bind(this);
+    this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
+    this._asWatchedClickHandler = this._asWatchedClickHandler.bind(this);
+    this._toWatchListClickHandler = this._toWatchListClickHandler.bind(this);
   }
 
   getTemplate() {
@@ -162,8 +167,60 @@ export default class FilmDetailPopup extends AbstractView {
     this._callback.closeClick();
   }
 
+  _formCommentDeleteClick(evt) {
+    evt.preventDefault();
+    this._callback.formCommentDelete(evt, this._film);
+  }
+
+  _formTextAreaHandler(evt) {
+    this._callback.formTextAreaKeyDown(evt, this._film);
+  }
+
+  _favoriteClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.favoriteClick(this._film);
+  }
+
+  _asWatchedClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.asWatchedClick(this._film);
+  }
+
+  _toWatchListClickHandler(evt) {
+    evt.preventDefault();
+    this._callback.watchListClick(this._film);
+  }
+
   setClosePopUpClickHandler(callback) {
     this._callback.closeClick = callback;
     this.getElement().querySelector('.film-details__close-btn').addEventListener('click', this._closePopUpClickHandler);
+  }
+
+  setFormCommentDeleteClickHandler(callback) {
+    this._callback.formCommentDelete = callback;
+    const commentDeleteButton = this.getElement().querySelectorAll('.film-details__comment-delete');
+    for(const button of commentDeleteButton) {
+      button.addEventListener('click', this._formCommentDeleteClick);
+    }
+  }
+
+  setFormTextAreaKeyDownHandler(callback) {
+    this._callback.formTextAreaKeyDown = callback;
+    this.getElement().querySelector('.film-details__comment-input').addEventListener('keydown', this._formTextAreaHandler);
+  }
+
+  setFavoriteClickHandler(callback) {
+    this._callback.favoriteClick = callback;
+    this.getElement().querySelector('#favorite').addEventListener('click', this._favoriteClickHandler);
+  }
+
+  setAsWatchedClickHandler(callback) {
+    this._callback.asWatchedClick = callback;
+    this.getElement().querySelector('#watched').addEventListener('click', this._asWatchedClickHandler);
+  }
+
+  setToWatchListClickHandler(callback) {
+    this._callback.watchListClick = callback;
+    this.getElement().querySelector('#watchlist').addEventListener('click', this._toWatchListClickHandler);
   }
 }

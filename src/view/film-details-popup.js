@@ -46,7 +46,7 @@ const createFilmDetailsTemplate = (film) => {
     }).join('');
   };
 
-  return `<section class="film-details">
+  return `<section class="film-details" data-card-id="${film.id}">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
       <div class="film-details__close">
@@ -178,17 +178,17 @@ export default class FilmDetailPopup extends AbstractView {
 
   _favoriteClickHandler(evt) {
     evt.preventDefault();
-    this._callback.favoriteClick(this._film);
+    this._callback.favoriteClick();
   }
 
   _asWatchedClickHandler(evt) {
     evt.preventDefault();
-    this._callback.asWatchedClick(this._film);
+    this._callback.asWatchedClick();
   }
 
   _toWatchListClickHandler(evt) {
     evt.preventDefault();
-    this._callback.watchListClick(this._film);
+    this._callback.watchListClick();
   }
 
   setClosePopUpClickHandler(callback) {

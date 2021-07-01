@@ -31,45 +31,27 @@ export default class Film {
   }
 
   init(film) {
+    console.log(this._mode);
+    console.log(film);
     this._film = film;
     const prevFilmComponent = this._filmComponent;
-    const prevFilmDetailPopUpComponent = this._filmDetailPopUpComponent;
 
     this._filmComponent = new FilmCardView(this._film);
-    this._filmDetailPopUpComponent = new FilmDetailPopup(this._film);
 
-    this._filmComponent.setOpenPopUpClickHandler(this._openFilmCardPopUpHandler);
-    this._filmComponent.setFavoriteClickHandler(this._handleFavoriteClick);
-    this._filmComponent.setAsWatchedClickHandler(this._handleAsWatchedClick);
-    this._filmComponent.setToWatchListClickHandler(this._handleToWatchListClick);
+    this._filmComponentAddEventListener();
 
-    this._filmDetailPopUpComponent.setClosePopUpClickHandler(this._closeFilmCardPopUpHandler);
-    this._filmDetailPopUpComponent.setFormCommentDeleteClickHandler(this._handleFormCommentDelete);
-    this._filmDetailPopUpComponent.setFormTextAreaKeyDownHandler(this._handleFormTextAreaSubmit);
-    this._filmDetailPopUpComponent.setFavoriteClickHandler(this._handleFavoriteClick);
-    this._filmDetailPopUpComponent.setAsWatchedClickHandler(this._handleAsWatchedClick);
-    this._filmDetailPopUpComponent.setToWatchListClickHandler(this._handleToWatchListClick);
-
-    if (prevFilmComponent === null || prevFilmDetailPopUpComponent === null) {
-      render(this._filmListContainerElement, this._filmComponent.getElement(), RenderPosition.BEFOREEND);
+    if (prevFilmComponent === null) {
+      render(this._filmListContainerElement, this._filmComponent, RenderPosition.BEFOREEND);
       return;
     }
 
-    // if (this._mode === Mode.DEFAULT) {
-    //   replace(this._filmComponent, prevFilmComponent);
-    // }
-
-    if (document.body.contains(prevFilmDetailPopUpComponent.getElement())) {
-      replace(this._filmDetailPopUpComponent, prevFilmDetailPopUpComponent);
+    if (this._mode === Mode.DEFAULT) {
+      replace(this._filmComponent, prevFilmComponent);
+      remove(prevFilmComponent);
     }
 
-    if (this._mode === Mode.SHOWING) {
-      console.log(this._mode);
-      replace(this._filmDetailPopUpComponent, prevFilmDetailPopUpComponent);
-    }
-
-    remove(prevFilmComponent);
-    remove(prevFilmDetailPopUpComponent);
+    // remove(prevFilmComponent);
+    // remove(prevFilmDetailPopUpComponent);
   }
 
   destroy() {
@@ -83,15 +65,38 @@ export default class Film {
     }
   }
 
-  _openFilmCardPopUpHandler() {
-    console.log(this._filmDetailPopUpComponent);
-    console.log(this._mode);
-    document.body.appendChild(this._filmDetailPopUpComponent.getElement());
-    document.body.classList.add('hide-overflow');
+  _filmDetailPopUpComponentAddEventListener() {
+    this._filmDetailPopUpComponent.setClosePopUpClickHandler(this._closeFilmCardPopUpHandler);
+    this._filmDetailPopUpComponent.setFormCommentDeleteClickHandler(this._handleFormCommentDelete);
+    this._filmDetailPopUpComponent.setFormTextAreaKeyDownHandler(this._handleFormTextAreaSubmit);
+    this._filmDetailPopUpComponent.setFavoriteClickHandler(this._handleFavoriteClick);
+    this._filmDetailPopUpComponent.setAsWatchedClickHandler(this._handleAsWatchedClick);
+    this._filmDetailPopUpComponent.setToWatchListClickHandler(this._handleToWatchListClick);
+  }
 
-    document.body.addEventListener('keydown', this._escKeyDownHandler);
+  _filmComponentAddEventListener() {
+    this._filmComponent.setOpenPopUpClickHandler(this._openFilmCardPopUpHandler);
+    this._filmComponent.setFavoriteClickHandler(this._handleFavoriteClick);
+    this._filmComponent.setAsWatchedClickHandler(this._handleAsWatchedClick);
+    this._filmComponent.setToWatchListClickHandler(this._handleToWatchListClick);
+  }
 
+  _openFilmCardPopUpHandler(evt) {
     this._changeMode();
+
+    const prevFilmDetailPopUpComponent = this._filmDetailPopUpComponent;
+    this._filmDetailPopUpComponent = new FilmDetailPopup(this._film);
+    this._filmDetailPopUpComponentAddEventListener();
+
+    if(prevFilmDetailPopUpComponent !== null) {
+      replace(this._filmDetailPopUpComponent, prevFilmDetailPopUpComponent);
+      remove(prevFilmDetailPopUpComponent);
+    }
+    render(document.body, this._filmDetailPopUpComponent, RenderPosition.BEFOREEND);
+
+
+    document.body.classList.add('hide-overflow');
+    document.body.addEventListener('keydown', this._escKeyDownHandler);
     this._mode = Mode.SHOWING;
   }
 

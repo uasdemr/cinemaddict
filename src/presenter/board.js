@@ -8,7 +8,7 @@ import MostCommentedView from '../view/most-commented.js';
 // import FilmDetailPopup from '../view/film-details-popup.js';
 import NoFilmsView from '../view/no-films.js';
 import FilmPresenter from './film.js';
-import {updateItem} from '../utils/common.js';
+import { updateItem } from '../utils/common.js';
 import { render, remove, RenderPosition } from '../utils/render.js';
 
 import { FILM_TOP_RATED_COUNT, FILM_MOST_COMMENTED_COUNT, FILM_COUNT_PER_STEP } from '../const.js';

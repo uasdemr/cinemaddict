@@ -1,16 +1,16 @@
 import SortView from '../view/sort.js';
 import FilmsView from '../view/films.js';
 import FilmsListView from '../view/films-list.js';
-// import FilmCardView from '../view/film-card.js';
 import ShowMoreButtonView from '../view/show-more-button.js';
 import TopRatedView from '../view/top-rated.js';
 import MostCommentedView from '../view/most-commented.js';
-// import FilmDetailPopup from '../view/film-details-popup.js';
 import NoFilmsView from '../view/no-films.js';
 import FilmPresenter from './film.js';
+
 import { updateItem } from '../utils/common.js';
 import { render, remove, RenderPosition } from '../utils/render.js';
-
+import { sortByDate, sortByRating } from '../utils/film.js';
+import { SortType } from '../const.js';
 import { FILM_TOP_RATED_COUNT, FILM_MOST_COMMENTED_COUNT, FILM_COUNT_PER_STEP } from '../const.js';
 
 export default class Board {
@@ -18,6 +18,7 @@ export default class Board {
     this._boardContainer = boardContainer;
     this._renderedFilmCount = FILM_COUNT_PER_STEP;
     this._filmPresenter = {};
+    this._currentSortType = SortType.DEFAULT;
 
     this._sortComponent = new SortView();
     this._filmsComponent = new FilmsView();
@@ -36,9 +37,14 @@ export default class Board {
   }
 
   init(boardFilms) {
-    this._boardFilms = boardFilms.slice();
     // Метод для инициализации (начала работы) модуля,
     // малая часть текущей функции renderBoard в main.js
+    this._boardFilms = boardFilms.slice();
+
+    // 1. В отличии от сортировки по любому параметру,
+    // исходный порядок можно сохранить только одним способом -
+    // сохранив исходный массив:
+    this._sourcedBoardFilms = boardFilms.slice();
 
     render(this._boardContainer, this._filmsComponent, RenderPosition.BEFOREEND);
     render(this._filmsComponent, this._filmsListComponent, RenderPosition.BEFOREEND);
@@ -54,14 +60,42 @@ export default class Board {
 
   _handleFilmChange(updatedFilm) {
     this._boardFilms = updateItem(this._boardFilms, updatedFilm);
+    this._sourcedBoardFilms = updateItem(this._sourcedBoardFilms, updatedFilm);
     this._filmPresenter[updatedFilm.id].init(updatedFilm);
   }
 
   _handleSortTypeChange(sortType) {
-    console.log(sortType);
     // - Сортируем задачи
+    if (this._currentSortType === sortType) {
+      return;
+    }
+
+    this._sortFilms(sortType);
     // - Очищаем список
     // - Рендерим список заново
+    this._clearFilmList();
+    this._renderFilmList();
+  }
+
+  _sortFilms(sortType) {
+    console.log(sortType);
+    // 2. Этот исходный массив задач необходим,
+    // потому что для сортировки мы будем мутировать
+    // массив в свойстве _boardFilms
+    switch (sortType) {
+      case SortType.BY_DATE.toLowerCase():
+        this._boardFilms.sort(sortByDate);
+        break;
+      case SortType.BY_RATING.toLowerCase():
+        this._boardFilms.sort(sortByRating);
+        break;
+      default:
+        // 3. А когда пользователь захочет "вернуть всё, как было",
+        // мы просто запишем в _boardFilms исходный массив
+        this._boardFilms = this._sourcedBoardFilms.slice();
+    }
+
+    this._currentSortType = sortType;
   }
 
   _renderSort() {

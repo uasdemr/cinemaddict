@@ -54,7 +54,7 @@ export default class Film {
 
   destroy() {
     remove(this._filmComponent);
-    remove(this._filmDetailPopUpComponent);
+    // remove(this._filmDetailPopUpComponent);
   }
 
   resetView() {
@@ -190,8 +190,6 @@ export default class Film {
         ),
       );
     }
-
-    // this._changeData(this._film);
   }
 
 

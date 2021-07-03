@@ -31,8 +31,6 @@ export default class Film {
   }
 
   init(film) {
-    console.log(this._mode);
-    console.log(film);
     this._film = film;
     const prevFilmComponent = this._filmComponent;
 
@@ -81,7 +79,7 @@ export default class Film {
     this._filmComponent.setToWatchListClickHandler(this._handleToWatchListClick);
   }
 
-  _openFilmCardPopUpHandler(evt) {
+  _openFilmCardPopUpHandler() {
     this._changeMode();
 
     const prevFilmDetailPopUpComponent = this._filmDetailPopUpComponent;
@@ -178,13 +176,10 @@ export default class Film {
   }
 
   _handleFormTextAreaSubmit(evt, film) {
-    console.log(evt.target.value, film);
     const { comments } = film;
 
     if (evt.code == 'Enter' && evt.ctrlKey) {
       comments.push(evt.target.value);
-      console.log(comments);
-      console.log('BINGO!');
       this._changeData(
         Object.assign(
           {},

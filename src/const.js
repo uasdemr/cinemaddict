@@ -4,3 +4,9 @@ export const FILM_COUNT = 5;
 export const FILM_TOP_RATED_COUNT = 2;
 export const FILM_MOST_COMMENTED_COUNT = 2;
 export const FILM_COUNT_PER_STEP = 5;
+
+export const SortType = {
+  DEFAULT: 'Sort by default',
+  BY_DATE: 'Sort by date',
+  BY_RATING: 'Sort by rating',
+};

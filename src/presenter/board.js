@@ -32,6 +32,7 @@ export default class Board {
     this._handleShowMoreButtonClick = this._handleShowMoreButtonClick.bind(this);
     this._handleFilmChange = this._handleFilmChange.bind(this);
     this._handleModeChange = this._handleModeChange.bind(this);
+    this._handleSortTypeChange = this._handleSortTypeChange.bind(this);
   }
 
   init(boardFilms) {
@@ -56,9 +57,17 @@ export default class Board {
     this._filmPresenter[updatedFilm.id].init(updatedFilm);
   }
 
+  _handleSortTypeChange(sortType) {
+    console.log(sortType);
+    // - Сортируем задачи
+    // - Очищаем список
+    // - Рендерим список заново
+  }
+
   _renderSort() {
     // Метод для рендеринга сортировки
     render(this._boardContainer, this._sortComponent, RenderPosition.AFTERBEGIN);
+    this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
   }
 
   _renderFilm(film) {
@@ -84,7 +93,7 @@ export default class Board {
     this._renderedFilmCount += FILM_COUNT_PER_STEP;
 
     if (this._renderedFilmCount >= this._boardFilms.length) {
-      remove(this._showMoreButtonComponent)
+      remove(this._showMoreButtonComponent);
     }
   }
 

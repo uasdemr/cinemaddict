@@ -2,6 +2,7 @@ import AbstractView from './abstract.js';
 import dayjs from 'dayjs';
 import { EMOTIONS } from '../const.js';
 import { mockComments } from '../mock/comments.js';
+import { remove } from '../utils/render.js';
 
 const createEmojiList = () => {
   return EMOTIONS.map((emotion) => {
@@ -12,8 +13,13 @@ const createEmojiList = () => {
   }).join('');
 };
 
-const createFilmDetailsTemplate = (film) => {
-  const { filmInfo, comments } = film;
+const createFilmDetailsTemplate = (data) => {
+  const { filmInfo, filmComments, isToWathcList, isAsWatched, isToFavorite, description, emoji } = data;
+
+  const isWatchList = isToWathcList ? 'checked' : '';
+  const isWatched = isAsWatched ? 'checked' : '';
+  const isFavorite = isToFavorite ? 'checked' : '';
+
   const writers = filmInfo.writers.length > 0 ? filmInfo.writers.join(', ') : '';
   const actors = filmInfo.actors.length > 0 ? filmInfo.actors.join(', ') : '';
   const releaseDate = filmInfo.release.date ? dayjs(filmInfo.release.date).format('DD MMMM YYYY') : '';
@@ -27,7 +33,7 @@ const createFilmDetailsTemplate = (film) => {
   };
 
   const createFilmComments = (comments) => {
-    const filteredComments = mockComments.filter(({id}) => comments.includes(id));
+    const filteredComments = mockComments.filter(({ id }) => comments.includes(id));
     return filteredComments.map((item) => {
       const commentDate = item.date ? dayjs(item.date).format('YYYY/MM/DD HH:mm') : '';
       return `<li class="film-details__comment">
@@ -46,7 +52,7 @@ const createFilmDetailsTemplate = (film) => {
     }).join('');
   };
 
-  return `<section class="film-details" data-card-id="${film.id}">
+  return `<section class="film-details" data-card-id="${data.id}">
   <form class="film-details__inner" action="" method="get">
     <div class="film-details__top-container">
       <div class="film-details__close">
@@ -110,30 +116,32 @@ const createFilmDetailsTemplate = (film) => {
       </div>
 
       <section class="film-details__controls">
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist">
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watchlist" name="watchlist" ${isWatchList}>
         <label for="watchlist" class="film-details__control-label film-details__control-label--watchlist">Add to watchlist</label>
 
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched">
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="watched" name="watched" ${isWatched}>
         <label for="watched" class="film-details__control-label film-details__control-label--watched">Already watched</label>
 
-        <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite">
+        <input type="checkbox" class="film-details__control-input visually-hidden" id="favorite" name="favorite" ${isFavorite}>
         <label for="favorite" class="film-details__control-label film-details__control-label--favorite">Add to favorites</label>
       </section>
     </div>
 
     <div class="film-details__bottom-container">
       <section class="film-details__comments-wrap">
-        <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${comments.length}</span></h3>
+        <h3 class="film-details__comments-title">Comments <span class="film-details__comments-count">${filmComments.length}</span></h3>
 
         <ul class="film-details__comments-list">
-          ${createFilmComments(comments)}
+          ${createFilmComments(filmComments)}
         </ul>
 
         <div class="film-details__new-comment">
-          <div class="film-details__add-emoji-label"></div>
+          <div class="film-details__add-emoji-label">
+            ${emoji ? `<img src="./images/emoji/${emoji}.png" width="55" height="55">` : ''}
+          </div>
 
           <label class="film-details__comment-label">
-            <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment"></textarea>
+            <textarea class="film-details__comment-input" placeholder="Select reaction below and write comment here" name="comment">${description}</textarea>
           </label>
 
           <div class="film-details__emoji-list">
@@ -146,20 +154,148 @@ const createFilmDetailsTemplate = (film) => {
 </section>`;
 };
 
+//Перенести в класс обработчики добавления комментариев, удаления комментариев
+//добавление эмоции (клик по смайлику) из presenter/film.js
 export default class FilmDetailPopup extends AbstractView {
   constructor(film) {
     super();
-    this._film = film;
+    // this._film = film;
+    this._data = FilmDetailPopup.parseFilmToData(film);
+
     this._closePopUpClickHandler = this._closePopUpClickHandler.bind(this);
     this._formCommentDeleteClick = this._formCommentDeleteClick.bind(this);
     this._formTextAreaHandler = this._formTextAreaHandler.bind(this);
     this._favoriteClickHandler = this._favoriteClickHandler.bind(this);
     this._asWatchedClickHandler = this._asWatchedClickHandler.bind(this);
     this._toWatchListClickHandler = this._toWatchListClickHandler.bind(this);
+
+    this._handleFormCommentDelete = this._handleFormCommentDelete.bind(this);
+    this._handleFormTextAreaSubmit = this._handleFormTextAreaSubmit.bind(this);
+    this._handleEmojiClick = this._handleEmojiClick.bind(this);
+    this._commentInputHandler = this._commentInputHandler.bind(this);
+
+    this._setInnerHandlers();
   }
 
   getTemplate() {
-    return createFilmDetailsTemplate(this._film);
+    return createFilmDetailsTemplate(this._data);
+  }
+
+  updateData(update, justDataUpdating) {
+    if (!update) {
+      return;
+    }
+
+    this._data = Object.assign(
+      {},
+      this._data,
+      update,
+    );
+
+    if (justDataUpdating) {
+      return;
+    }
+
+    this.updateElement();
+  }
+
+  updateElement() {
+    const prevElement = this.getElement();
+    const parent = prevElement.parentElement;
+    this.removeElement();
+
+    const newElement = this.getElement();
+
+    parent.replaceChild(newElement, prevElement);
+
+    this.restoreHandlers();
+  }
+
+  restoreHandlers() {
+    this._setInnerHandlers();
+  }
+
+  _setInnerHandlers() {
+    this.getElement().querySelectorAll('.film-details__comment-delete').forEach((item) => {
+      item.addEventListener('click', this._handleFormCommentDelete);
+    });
+    this.getElement().querySelector('.film-details__comment-input').addEventListener('keydown', this._handleFormTextAreaSubmit);
+    this.getElement().querySelectorAll('.film-details__emoji-item').forEach((item) => {
+      item.addEventListener('change', this._handleEmojiClick);
+    });
+    this.getElement().querySelector('.film-details__comment-input').addEventListener('input', this._commentInputHandler);
+  }
+
+  _handleEmojiClick(evt) {
+    const emojiReaction = evt.target.id.split('-')[1];
+    const img = document.createElement('img');
+    img.src = `./images/emoji/${emojiReaction}.png`;
+    img.alt = `emoji-${emojiReaction}`;
+    img.width = 55;
+    img.height = 55;
+    img.id = emojiReaction;
+
+    const imgContainer = this.getElement().querySelector('.film-details__add-emoji-label');
+    const oldImg = imgContainer.querySelector('img');
+    if (oldImg) {
+      oldImg.remove();
+    }
+    imgContainer.appendChild(img);
+
+    const emoji = this.getElement().querySelector('.film-details__add-emoji-label > img');
+    this.updateData({
+      emoji: emoji ? emoji.id : '',
+    }, true);
+  }
+
+  _handleFormCommentDelete(evt) {
+    const { filmComments, emoji } = this._data;
+
+    // comments.splice(comments.indexOf(evt.target.dataset.commentId), 1);
+    filmComments.splice(filmComments.indexOf(evt.target.dataset.commentId), 1);
+    this.updateData({
+      filmComments,
+      emoji: emoji ? emoji : '',
+    });
+  }
+
+  _commentInputHandler(evt) {
+    evt.preventDefault();
+    const emoji = this.getElement().querySelector('.film-details__add-emoji-label > img');
+    const updateObj = {};
+    updateObj.description = evt.target.value;
+    if (emoji) {
+      updateObj.emoji = emoji.id;
+    }
+    this.updateData(updateObj, true);
+  }
+
+  _handleFormTextAreaSubmit(evt) {
+    const { filmComments } = this._data;
+
+    if (evt.code == 'Enter' && evt.ctrlKey) {
+      const emoji = this.getElement().querySelector('.film-details__add-emoji-label > img');
+      const updatedObj = {};
+      if (emoji) {
+        updatedObj.emoji = emoji.id;
+      }
+
+      const allComments = mockComments;
+      const newCommentId = String(allComments[allComments.length - 1].id * 1 + 1);
+
+      const newComment = {
+        id: newCommentId,
+        author: 'Ivan Pirogov',
+        comment: evt.target.value,
+        date: Date.now(),
+        emotion: emoji.id,
+      };
+
+      allComments.push(newComment);
+      filmComments.push(newCommentId);
+      updatedObj.filmComments = filmComments;
+      this.updateData(updatedObj);
+    }
   }
 
   _closePopUpClickHandler(evt) {
@@ -177,17 +313,17 @@ export default class FilmDetailPopup extends AbstractView {
   }
 
   _favoriteClickHandler(evt) {
-    evt.preventDefault();
+    // evt.preventDefault();
     this._callback.favoriteClick();
   }
 
   _asWatchedClickHandler(evt) {
-    evt.preventDefault();
+    // evt.preventDefault();
     this._callback.asWatchedClick();
   }
 
   _toWatchListClickHandler(evt) {
-    evt.preventDefault();
+    // evt.preventDefault();
     this._callback.watchListClick();
   }
 
@@ -199,7 +335,7 @@ export default class FilmDetailPopup extends AbstractView {
   setFormCommentDeleteClickHandler(callback) {
     this._callback.formCommentDelete = callback;
     const commentDeleteButton = this.getElement().querySelectorAll('.film-details__comment-delete');
-    for(const button of commentDeleteButton) {
+    for (const button of commentDeleteButton) {
       button.addEventListener('click', this._formCommentDeleteClick);
     }
   }
@@ -222,5 +358,33 @@ export default class FilmDetailPopup extends AbstractView {
   setToWatchListClickHandler(callback) {
     this._callback.watchListClick = callback;
     this.getElement().querySelector('#watchlist').addEventListener('click', this._toWatchListClickHandler);
+  }
+
+  static parseFilmToData(film) {
+    return Object.assign(
+      {},
+      film,
+      {
+        isToWathcList: film.userDetails.watchlist,
+        isAsWatched: film.userDetails.alreadyWatched,
+        isToFavorite: film.userDetails.favorite,
+        filmComments: film.comments,
+        description: '',
+        emoji: '',
+      },
+    );
+  }
+
+  static parseDataToTask(data) {
+    data = Object.assign({}, data);
+
+    delete data.isToWathcList;
+    delete data.isAsWatched;
+    delete data.isToFavorite;
+    delete data.filmComments;
+    delete data.description;
+    delete data.emoji;
+
+    return data;
   }
 }

@@ -13,7 +13,6 @@ const createSortTemplate = () => {
 export default class FilmsList extends AbstractView {
   constructor() {
     super();
-
     this._sortTypeChangeHandler = this._sortTypeChangeHandler.bind(this);
   }
   getTemplate() {

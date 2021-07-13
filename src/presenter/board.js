@@ -18,6 +18,7 @@ export default class Board {
     this._boardContainer = boardContainer;
     this._renderedFilmCount = FILM_COUNT_PER_STEP;
     this._filmPresenter = {};
+    this._filmTopRatedPresenter = {};
     this._currentSortType = SortType.DEFAULT;
 
     this._sortComponent = new SortView();
@@ -59,6 +60,7 @@ export default class Board {
   }
 
   _handleFilmChange(updatedFilm) {
+    console.log(updatedFilm);
     this._boardFilms = updateItem(this._boardFilms, updatedFilm);
     this._sourcedBoardFilms = updateItem(this._sourcedBoardFilms, updatedFilm);
     this._filmPresenter[updatedFilm.id].init(updatedFilm);
@@ -75,10 +77,13 @@ export default class Board {
     // - Рендерим список заново
     this._clearFilmList();
     this._renderFilmList();
+
+
+    // this._renderTopRated();
+    // this._renderMostCommented();
   }
 
   _sortFilms(sortType) {
-    console.log(sortType);
     // 2. Этот исходный массив задач необходим,
     // потому что для сортировки мы будем мутировать
     // массив в свойстве _boardFilms
@@ -100,8 +105,8 @@ export default class Board {
 
   _renderSort() {
     // Метод для рендеринга сортировки
-    render(this._boardContainer, this._sortComponent, RenderPosition.AFTERBEGIN);
     this._sortComponent.setSortTypeChangeHandler(this._handleSortTypeChange);
+    render(this._boardContainer, this._sortComponent, RenderPosition.AFTERBEGIN);
   }
 
   _renderFilm(film) {
@@ -154,11 +159,32 @@ export default class Board {
 
   _renderTopRated() {
     // Блок «Top rated movies» не отображается, если у всех фильмов рейтинг равен нулю.
-    render(this._filmsComponent, new TopRatedView().getElement(), RenderPosition.BEFOREEND);
+    render(this._filmsComponent, this._topRatedComponent.getElement(), RenderPosition.BEFOREEND);
+
+    const topRatedSortItems = this._boardFilms.sort((item1, item2) => item1.filmInfo.totalRating < item2.filmInfo.totalRating);
+
+    for (let i = 0; i <= 1; i++) {
+      const sortedItem = topRatedSortItems[i];
+      const extraListRated = this._topRatedComponent.getElement().querySelector('.films-list__container');
+      const filmPresenter = new FilmPresenter(extraListRated, this._handleFilmChange, this._handleModeChange);
+      filmPresenter.init(sortedItem);
+      this._filmTopRatedPresenter[sortedItem.id] = filmPresenter;
+    }
   }
 
   _renderMostCommented() {
     // Блок «Most commented» не отображается, если отсутствуют фильмы с комментариями.
+    render(this._filmsComponent, this._mostCommentedComponent.getElement(), RenderPosition.BEFOREEND);
+
+    const topRatedSortItems = this._boardFilms.sort((item1, item2) => item1.comments.length < item2.comments.length);
+
+    for (let i = 0; i <= 1; i++) {
+      const sortedItem = topRatedSortItems[i];
+      const extraListRated = this._mostCommentedComponent.getElement().querySelector('.films-list__container');
+      const filmPresenter = new FilmPresenter(extraListRated, this._handleFilmChange, this._handleModeChange);
+      filmPresenter.init(sortedItem);
+      this._filmPresenter[sortedItem.id] = filmPresenter;
+    }
   }
 
   _renderBoard() {

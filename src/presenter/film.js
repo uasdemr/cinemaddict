@@ -1,5 +1,6 @@
 import FilmCardView from '../view/film-card.js';
 import FilmDetailPopup from '../view/film-details-popup.js';
+import { mockComments } from '../mock/comments.js';
 
 import { render, remove, RenderPosition, replace } from '../utils/render.js';
 
@@ -26,13 +27,17 @@ export default class Film {
     this._handleAsWatchedClick = this._handleAsWatchedClick.bind(this);
     this._handleToWatchListClick = this._handleToWatchListClick.bind(this);
 
-    this._handleFormCommentDelete = this._handleFormCommentDelete.bind(this);
-    this._handleFormTextAreaSubmit = this._handleFormTextAreaSubmit.bind(this);
+    // this._handleFormCommentDelete = this._handleFormCommentDelete.bind(this);
+    // this._handleFormTextAreaSubmit = this._handleFormTextAreaSubmit.bind(this);
   }
 
   init(film) {
     this._film = film;
     const prevFilmComponent = this._filmComponent;
+    const prevFilmDetailPopUpComponent = this._filmDetailPopUpComponent;
+    this._filmDetailPopUpComponent = new FilmDetailPopup(this._film);
+    this._filmDetailPopUpComponentAddEventListener();
+    // const prevFilmDetailPopUpComponent = this._filmDetailPopUpComponent;
 
     this._filmComponent = new FilmCardView(this._film);
 
@@ -46,6 +51,14 @@ export default class Film {
     if (this._mode === Mode.DEFAULT) {
       replace(this._filmComponent, prevFilmComponent);
       remove(prevFilmComponent);
+    }
+
+    if (this._mode === Mode.SHOWING) {
+      replace(this._filmComponent, prevFilmComponent);
+      replace(this._filmDetailPopUpComponent, prevFilmDetailPopUpComponent);
+      remove(prevFilmComponent);
+      remove(prevFilmDetailPopUpComponent);
+      // remove(prevFilmDetailPopUpComponent);
     }
 
     // remove(prevFilmComponent);
@@ -65,8 +78,8 @@ export default class Film {
 
   _filmDetailPopUpComponentAddEventListener() {
     this._filmDetailPopUpComponent.setClosePopUpClickHandler(this._closeFilmCardPopUpHandler);
-    this._filmDetailPopUpComponent.setFormCommentDeleteClickHandler(this._handleFormCommentDelete);
-    this._filmDetailPopUpComponent.setFormTextAreaKeyDownHandler(this._handleFormTextAreaSubmit);
+    // this._filmDetailPopUpComponent.setFormCommentDeleteClickHandler(this._handleFormCommentDelete);
+    // this._filmDetailPopUpComponent.setFormTextAreaKeyDownHandler(this._handleFormTextAreaSubmit);
     this._filmDetailPopUpComponent.setFavoriteClickHandler(this._handleFavoriteClick);
     this._filmDetailPopUpComponent.setAsWatchedClickHandler(this._handleAsWatchedClick);
     this._filmDetailPopUpComponent.setToWatchListClickHandler(this._handleToWatchListClick);
@@ -81,12 +94,11 @@ export default class Film {
 
   _openFilmCardPopUpHandler() {
     this._changeMode();
-
     const prevFilmDetailPopUpComponent = this._filmDetailPopUpComponent;
     this._filmDetailPopUpComponent = new FilmDetailPopup(this._film);
     this._filmDetailPopUpComponentAddEventListener();
 
-    if(prevFilmDetailPopUpComponent !== null) {
+    if (prevFilmDetailPopUpComponent !== null) {
       replace(this._filmDetailPopUpComponent, prevFilmDetailPopUpComponent);
       remove(prevFilmDetailPopUpComponent);
     }
@@ -161,36 +173,46 @@ export default class Film {
     );
   }
 
-  _handleFormCommentDelete(evt, film) {
-    const { comments } = film;
-    comments.splice(comments.indexOf(evt.target.dataset.commentId), 1);
-    this._changeData(
-      Object.assign(
-        {},
-        this._film,
-        {
-          comments: comments,
-        },
-      ),
-    );
-  }
+  // _handleFormCommentDelete(evt, film) {
+  //   const { comments } = film;
+  //   comments.splice(comments.indexOf(evt.target.dataset.commentId), 1);
+  //   this._changeData(
+  //     Object.assign(
+  //       {},
+  //       this._film,
+  //       {
+  //         comments: comments,
+  //       },
+  //     ),
+  //   );
+  // }
 
-  _handleFormTextAreaSubmit(evt, film) {
-    const { comments } = film;
+  // _handleFormTextAreaSubmit(evt, film) {
+  //   const { comments } = film;
 
-    if (evt.code == 'Enter' && evt.ctrlKey) {
-      comments.push(evt.target.value);
-      this._changeData(
-        Object.assign(
-          {},
-          this._film,
-          {
-            comments: comments,
-          },
-        ),
-      );
-    }
-  }
+  //   if (evt.code == 'Enter' && evt.ctrlKey) {
+  //     const allComments = mockComments;
+  //     const newCommentId = String(allComments[allComments.length - 1].id * 1 + 1);
 
+  //     const newComment = {
+  //       id: newCommentId,
+  //       author: 'Ivan Pirogov',
+  //       comment: evt.target.value,
+  //       date: Date.now(),
+  //       emotion: 'smile',
+  //     };
 
+  //     allComments.push(newComment);
+  //     comments.push(newCommentId);
+  //     this._changeData(
+  //       Object.assign(
+  //         {},
+  //         this._film,
+  //         {
+  //           comments: comments,
+  //         },
+  //       ),
+  //     );
+  //   }
+  // }
 }

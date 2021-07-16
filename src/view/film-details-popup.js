@@ -4,6 +4,10 @@ import { EMOTIONS } from '../const.js';
 import { mockComments } from '../mock/comments.js';
 import { remove } from '../utils/render.js';
 
+const createEmojiImg = (emoji) => {
+  return emoji !== '' ? `<img src="./images/emoji/${emoji}.png" width="55" height="55">` : '';
+};
+
 const createEmojiList = () => {
   return EMOTIONS.map((emotion) => {
     return `<input class="film-details__emoji-item visually-hidden" name="comment-emoji" type="radio" id="emoji-${emotion}" value="${emotion}">
@@ -13,8 +17,9 @@ const createEmojiList = () => {
   }).join('');
 };
 
-const createFilmDetailsTemplate = (data) => {
-  const { filmInfo, filmComments, isToWathcList, isAsWatched, isToFavorite, description, emoji } = data;
+const createFilmDetailsTemplate = (data, state) => {
+  const { filmInfo, filmComments, isToWathcList, isAsWatched, isToFavorite } = data;
+  const { description, emoji } = state;
 
   const isWatchList = isToWathcList ? 'checked' : '';
   const isWatched = isAsWatched ? 'checked' : '';
@@ -38,7 +43,7 @@ const createFilmDetailsTemplate = (data) => {
       const commentDate = item.date ? dayjs(item.date).format('YYYY/MM/DD HH:mm') : '';
       return `<li class="film-details__comment">
       <span class="film-details__comment-emoji">
-        <img src="./images/emoji/${item.emotion}.png" width="55" height="55" alt="emoji-${item.emotion}">
+        ${createEmojiImg(item.emotion)}
       </span>
       <div>
         <p class="film-details__comment-text">${item.comment}</p>
@@ -137,7 +142,7 @@ const createFilmDetailsTemplate = (data) => {
 
         <div class="film-details__new-comment">
           <div class="film-details__add-emoji-label">
-            ${emoji ? `<img src="./images/emoji/${emoji}.png" width="55" height="55">` : ''}
+            ${createEmojiImg(emoji)}
           </div>
 
           <label class="film-details__comment-label">
@@ -161,6 +166,10 @@ export default class FilmDetailPopup extends AbstractView {
     super();
     // this._film = film;
     this._data = FilmDetailPopup.parseFilmToData(film);
+    this._state = {
+      description: '',
+      emoji: '',
+    };
 
     this._closePopUpClickHandler = this._closePopUpClickHandler.bind(this);
     this._formCommentDeleteClick = this._formCommentDeleteClick.bind(this);
@@ -173,12 +182,13 @@ export default class FilmDetailPopup extends AbstractView {
     this._handleFormTextAreaSubmit = this._handleFormTextAreaSubmit.bind(this);
     this._handleEmojiClick = this._handleEmojiClick.bind(this);
     this._commentInputHandler = this._commentInputHandler.bind(this);
+    this._commentClera = this._commentClera.bind(this);
 
     this._setInnerHandlers();
   }
 
   getTemplate() {
-    return createFilmDetailsTemplate(this._data);
+    return createFilmDetailsTemplate(this._data, this._state);
   }
 
   updateData(update, justDataUpdating) {
@@ -228,6 +238,8 @@ export default class FilmDetailPopup extends AbstractView {
 
   _handleEmojiClick(evt) {
     const emojiReaction = evt.target.id.split('-')[1];
+    this._state.emoji = emojiReaction;
+
     const img = document.createElement('img');
     img.src = `./images/emoji/${emojiReaction}.png`;
     img.alt = `emoji-${emojiReaction}`;
@@ -242,16 +254,16 @@ export default class FilmDetailPopup extends AbstractView {
     }
     imgContainer.appendChild(img);
 
-    const emoji = this.getElement().querySelector('.film-details__add-emoji-label > img');
+    const emoji = this._state.emoji;
     this.updateData({
-      emoji: emoji ? emoji.id : '',
+      emoji: emoji ? emoji : '',
     }, true);
   }
 
   _handleFormCommentDelete(evt) {
-    const { filmComments, emoji } = this._data;
+    const { filmComments } = this._data;
+    const emoji = this._state.emoji;
 
-    // comments.splice(comments.indexOf(evt.target.dataset.commentId), 1);
     filmComments.splice(filmComments.indexOf(evt.target.dataset.commentId), 1);
     this.updateData({
       filmComments,
@@ -261,24 +273,22 @@ export default class FilmDetailPopup extends AbstractView {
 
   _commentInputHandler(evt) {
     evt.preventDefault();
-    const emoji = this.getElement().querySelector('.film-details__add-emoji-label > img');
-    const updateObj = {};
-    updateObj.description = evt.target.value;
-    if (emoji) {
-      updateObj.emoji = emoji.id;
-    }
-    this.updateData(updateObj, true);
+    this._state.description = evt.target.value;
+  }
+
+  _commentClera() {
+    this._state = {
+      emoji: '',
+      description: '',
+    };
+    this.updateElement();
   }
 
   _handleFormTextAreaSubmit(evt) {
     const { filmComments } = this._data;
 
     if (evt.code == 'Enter' && evt.ctrlKey) {
-      const emoji = this.getElement().querySelector('.film-details__add-emoji-label > img');
       const updatedObj = {};
-      if (emoji) {
-        updatedObj.emoji = emoji.id;
-      }
 
       const allComments = mockComments;
       const newCommentId = String(allComments[allComments.length - 1].id * 1 + 1);
@@ -288,13 +298,13 @@ export default class FilmDetailPopup extends AbstractView {
         author: 'Ivan Pirogov',
         comment: evt.target.value,
         date: Date.now(),
-        emotion: emoji.id,
+        emotion: this._state.emoji ? this._state.emoji : '',
       };
-
       allComments.push(newComment);
       filmComments.push(newCommentId);
       updatedObj.filmComments = filmComments;
       this.updateData(updatedObj);
+      this._commentClera();
     }
   }
 
@@ -369,8 +379,6 @@ export default class FilmDetailPopup extends AbstractView {
         isAsWatched: film.userDetails.alreadyWatched,
         isToFavorite: film.userDetails.favorite,
         filmComments: film.comments,
-        description: '',
-        emoji: '',
       },
     );
   }
@@ -382,8 +390,6 @@ export default class FilmDetailPopup extends AbstractView {
     delete data.isAsWatched;
     delete data.isToFavorite;
     delete data.filmComments;
-    delete data.description;
-    delete data.emoji;
 
     return data;
   }
